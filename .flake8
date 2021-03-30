@@ -1,0 +1,5 @@
+[flake8]
+ignore = E711, F401
+max-line-length = 120
+exclude = test/*, .idea/*, venv/*, .coverage
+max-complexity = 10
