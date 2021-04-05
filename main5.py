@@ -1,34 +1,27 @@
+#needs refinement
 import re
 
-def main():
-    start_date = r"([a-zA-Z0-9._-]+)( - - )(\[01/Jul/1995:)(03:3[5-9]:[0-9])([a-zA-Z0-9. _/-]+)]" \
-                 r"(.+) [4-5]{1}[0-9]{1}[0-9]{1} (.+)"
-    after_date = r"([a-zA-Z0-9._-]+)( - - )(\[01/Jul/1995:)(03:[4-5][0-9]:\d{2})([a-zA-Z0-9. _/-]+)]" \
-                 r"(.+) [4-5]{1}[0-9]{1}[0-9]{1} (.+)"
-    stop_date = r"([a-zA-Z0-9._-]+)( - - )(\[01/Jul/1995:)(03:55:00)([a-zA-Z0-9. _/-]+)]" \
-                r"(.+) [4-5]{1}[0-9]{1}[0-9]{1} (.+)"
+regex = r'(.+)'
 
-    date1 = re.compile(start_date)
 
-    date2 = re.compile(after_date)
-    date3 = re.compile(stop_date)
-    with open('access_log_Jul95', 'r') as file:
-        found = []
+def convert_time(time): return sum(int(x) * 60 ** i for i, x in enumerate(reversed(time.split(':'))))
 
-        for line in file:
-            suitable = date1.search(line)
-            suitable1 = date2.search(line)
-            stop = date3.search(line)
-            if suitable:
-                found.append(suitable)
-            elif suitable1:
-                found.append(suitable1)
-            if stop:
-                break
 
-        for line in found:
-            print(line.group())
+def get_bytes(string_data):
+    return int(string_data[3]) \
+    if string_data[1] == '05/Mar/2004' and \
+        convert_time("17:04:44") <= convert_time(data[2]) <= convert_time("15:21:28") and\
+        string_data[3] != '12/Mar/2004' else 0
 
 
 if __name__ == '__main__':
-    main()
+    with open('apache_logs', 'r') as file:
+        successful, bytes_size = 0, 0
+        for line in file.readlines():
+            data = re.match(regex, line)
+            if data:
+                bytes_size, \
+                successful = bytes_size + get_bytes(data),\
+                successful + 1
+        print(f"total image file size {successful}, "
+              f"total number of bytes {bytes_size}")
