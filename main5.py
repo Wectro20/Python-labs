@@ -1,27 +1,94 @@
-#needs refinement
+import fileinput
 import re
+from pathlib import Path
+import time
 
-regex = r'(.+)'
+class ResBytesCounter:
+    def __init__(self, file_name: str = " "):
+        self.file_name = file_name
+        self.period = []
+        self.sum_size_of_images = 0
 
+    def search_request_ok_img(self):
+        pattern_request_ok_img = r'(GET|POST)+(.*(jpg|png).* 200 )'
+        list_of_request_ok_img = []
+        for line in self.period:
+            if re.findall(pattern_request_ok_img, str(line)):
+                list_of_request_ok_img.append(line)
+        return list_of_request_ok_img
 
-def convert_time(time): return sum(int(x) * 60 ** i for i, x in enumerate(reversed(time.split(':'))))
+    def calc_size_resource_of_request(self, list_of_request):
+        pattern_size_request = r'\s\d{4}\d*\s'
+        list = []
+        k = []
+        count = 0
+        for line in list_of_request:
+            list.append(str(re.findall(pattern_size_request, str(line))).replace(" ", ""))
+        for i in list:
+            temp = str(i).replace("[", "")
+            temp = str(temp).replace("]", "")
+            temp = str(temp).replace("'", "")
+            k.append(temp)
+        for i in k:
+            count += int(i)
+        print(f"Size of images: {count}")
 
+    def sort_by_date_and_time(self):
+        lines = list(fileinput.input(self.file_name))
+        file = open(f"copyof{self.file_name}", mode='w')
+        for line in sorted(lines, key=lambda l: re.findall(r'\d+/\w+/\d+:\d+:\d+:\d+', str(l))):
+            file.write(line)
+        file.close()
 
-def get_bytes(string_data):
-    return int(string_data[3]) \
-    if string_data[1] == '05/Mar/2004' and \
-        convert_time("17:04:44") <= convert_time(data[2]) <= convert_time("15:21:28") and\
-        string_data[3] != '12/Mar/2004' else 0
+    def __is_date(self, start_date: str = " ", end_date: str = " "):
+        file = open(f"copyof{self.file_name}", mode='r')
+        lines = file.read().splitlines()
+        file.close()
+        if re.search(start_date, str(lines)):
+            if re.search(end_date, str(lines)):
+                return True
+        else:
+            return False
+
+    def search_period(self, start_date: str = " ", end_date: str = " "):
+        pattern_of_time = r'\d+/\w+/\d+:\d+:\d+:\d+'
+        if Path(self.file_name).is_file():
+            print(f"\u001b[32mFile exist")
+        else:
+            print("\u001b[31mFile not exist")
+            raise IOError
+
+        try:
+            is_period = False
+            self.sort_by_date_and_time()
+            file = open(f"copyof{self.file_name}", mode='r')
+            lines = file.read().splitlines()
+            file.close()
+            if not self.__is_date(start_date, end_date):
+                print("\u001b[31mThere is no such period of time")
+                raise IOError
+
+            for line in lines:
+                found_start_time = re.findall(pattern_of_time, str(line))
+
+                if is_period == True:
+                    break
+                for i in found_start_time:
+                    if i > f"{end_date}":
+                        is_period = True
+                        break
+                    else:
+                        pass
+                    if i >= f"{start_date}":
+                        self.period.append(line)
+        except IOError as e:
+            print(e)
 
 
 if __name__ == '__main__':
-    with open('apache_logs', 'r') as file:
-        successful, bytes_size = 0, 0
-        for line in file.readlines():
-            data = re.match(regex, line)
-            if data:
-                bytes_size, \
-                successful = bytes_size + get_bytes(data),\
-                successful + 1
-        print(f"total image file size {successful}, "
-              f"total number of bytes {bytes_size}")
+    start_time = time.time()
+    counter = ResBytesCounter("apache_logs")
+    counter.search_period("17/May/2015:10:05:03", "17/May/2015:10:05:43")
+    a = counter.search_request_ok_img()
+    counter.calc_size_resource_of_request(a)
+    print("\u001b[35mProcessing time: %.2f" % (time.time() - start_time))
