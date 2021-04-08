@@ -3,34 +3,31 @@ import re
 from pathlib import Path
 import time
 
+
 class ResBytesCounter:
     def __init__(self, file_name: str = " "):
         self.file_name = file_name
         self.period = []
         self.sum_size_of_images = 0
 
-    def search_request_ok_img(self):
-        pattern_request_ok_img = r'(GET|POST)+(.*(jpg|png).* 200 )'
-        list_of_request_ok_img = []
+    def ok_img(self):
+        pattern_request_ok_jpg = r'(GET|POST)+(.*(jpg).* 200 )'
+        pattern_request_ok_png = r'(GET|POST)+(.*(png).* 200 )'
+        list_of_request_ok_jpg = []
+        list_of_request_ok_png = []
         for line in self.period:
-            if re.findall(pattern_request_ok_img, str(line)):
-                list_of_request_ok_img.append(line)
-        return list_of_request_ok_img
+            if re.findall(pattern_request_ok_jpg, str(line)):
+                list_of_request_ok_jpg.append(line)
+            elif re.findall(pattern_request_ok_png, str(line)):
+                list_of_request_ok_png.append(line)
+        return list_of_request_ok_jpg, list_of_request_ok_png
 
     def calc_size_resource_of_request(self, list_of_request):
         pattern_size_request = r'\s\d{4}\d*\s'
-        list = []
-        k = []
         count = 0
         for line in list_of_request:
-            list.append(str(re.findall(pattern_size_request, str(line))).replace(" ", ""))
-        for i in list:
-            temp = str(i).replace("[", "")
-            temp = str(temp).replace("]", "")
-            temp = str(temp).replace("'", "")
-            k.append(temp)
-        for i in k:
-            count += int(i)
+            count += int(str(re.findall(pattern_size_request,
+                                        str(line))).replace(" ", "").replace("[", "").replace("]", "").replace("'", ""))
         print(f"Size of images: {count}")
 
     def sort_by_date_and_time(self):
@@ -89,6 +86,8 @@ if __name__ == '__main__':
     start_time = time.time()
     counter = ResBytesCounter("apache_logs")
     counter.search_period("17/May/2015:10:05:03", "17/May/2015:10:05:43")
-    a = counter.search_request_ok_img()
+    a, b = counter.ok_img()
     counter.calc_size_resource_of_request(a)
+    counter.calc_size_resource_of_request(b)
     print("\u001b[35mProcessing time: %.2f" % (time.time() - start_time))
+
