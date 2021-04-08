@@ -1,10 +1,10 @@
 # Python-labs
 
 ## Lab 5
-Count the total size of image files of each type (at the end of the query tape should be the end of png, jpg) 
-Resources which were successfully returned to customers (query type - GET or POST) 
-Between 05 / Mar / 2004: 17: 04: 44 to 12 / Mar / 2004: 15: 21: 28
-Log file: https://github.com/elastic/examples/blob/master/Common%20Data%20Formats/apache_logs/apache_logs 
+  - Count the total size of image files of each type (at the end of the query tape should be the end of png, jpg) 
+  - Resources which were successfully returned to customers (query type - GET or POST) 
+  - Between 05 / Mar / 2004: 17: 04: 44 to 12 / Mar / 2004: 15: 21: 28
+  - Log file: https://github.com/elastic/examples/blob/master/Common%20Data%20Formats/apache_logs/apache_logs 
 
 ### To run:
   - Clone/Download lab5 branch
